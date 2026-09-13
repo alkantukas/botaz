@@ -24,7 +24,7 @@ CMC_API_KEY = os.getenv("CMC_API_KEY")
 # PRICES
 # ============================================================
 
-BASE_PRICE = 80
+BASE_PRICE = 50
 DRIVERS_EXTRA = 15
 
 TRACKED_DPD_PRICE = 15
