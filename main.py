@@ -127,7 +127,7 @@ def calculate_price(context):
     shipping_method = context.user_data.get("shipping_method")
 
     if card_type == "Driver's license":
-        price += MEMBERSHIP_EXTRA
+        price += DRIVERS_EXTRA
 
     if shipping_method == "Tracked DPD":
         price += TRACKED_DPD_PRICE
