@@ -25,7 +25,7 @@ CMC_API_KEY = os.getenv("CMC_API_KEY")
 # ============================================================
 
 BASE_PRICE = 80
-MEMBERSHIP_EXTRA = 15
+DRIVERS_EXTRA = 15
 
 TRACKED_DPD_PRICE = 15
 
@@ -126,7 +126,7 @@ def calculate_price(context):
     card_type = context.user_data.get("card_type")
     shipping_method = context.user_data.get("shipping_method")
 
-    if card_type == "Membership card":
+    if card_type == "Driver's license":
         price += MEMBERSHIP_EXTRA
 
     if shipping_method == "Tracked DPD":
