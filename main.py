@@ -6,6 +6,7 @@ import asyncio
 import random
 from pathlib import Path
 from PIL import Image, ImageOps, ImageDraw
+import sqlite3
 
 from telegram.ext import (
     ApplicationBuilder,
@@ -399,10 +400,88 @@ def build_reviews_collage(review_photos):
 
 
 # ============================================================
+# USER DATABASE
+# ============================================================
+
+if os.path.exists("/data"):
+    DB_PATH = "/data/users.db"
+else:
+    DB_PATH = "users.db"
+
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                username TEXT,
+                first_name TEXT,
+                first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+
+
+def register_user(user):
+    user_id = user.id
+    username = user.username
+    first_name = user.first_name
+
+    with sqlite3.connect(DB_PATH) as conn:
+
+        cursor = conn.execute(
+            """
+            INSERT OR IGNORE INTO users (
+                user_id,
+                username,
+                first_name
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                user_id,
+                username,
+                first_name
+            )
+        )
+
+        is_new_user = cursor.rowcount > 0
+
+        # Update username/name in case they changed it
+        conn.execute(
+            """
+            UPDATE users
+            SET username = ?, first_name = ?
+            WHERE user_id = ?
+            """,
+            (
+                username,
+                first_name,
+                user_id
+            )
+        )
+
+        conn.commit()
+
+    if is_new_user:
+        username_text = f"@{username}" if username else "No username"
+
+        print(
+            f"🆕 NEW USER | "
+            f"ID: {user_id} | "
+            f"Username: {username_text} | "
+            f"Name: {first_name}",
+            flush=True
+        )
+
+
+# ============================================================
 # START
 # ============================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    register_user(update.effective_user)
+
     context.user_data.clear()
 
     context.user_data["price"] = BASE_PRICE
@@ -983,6 +1062,8 @@ async def text_handler(
 # ============================================================
 
 def main():
+
+    init_db()
 
     app = ApplicationBuilder().token(
         BOT_TOKEN
